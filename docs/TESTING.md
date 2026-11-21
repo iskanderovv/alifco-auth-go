@@ -72,6 +72,6 @@ Errors and timeouts were zero in every scenario.
 ## Not covered
 
 - The picture links are not fetched, so an expired link is not detected by the service. The frontend falls back to the initial when the image fails to load.
-- The frontend has its own tests in the `web-auth` project. No test drives a real provider login through a browser.
+- The frontend has its own tests in the [react-auth](https://github.com/iskanderovv/react-auth) project. No test drives a real provider login through a browser.
 - Nothing tests more than one instance of the service. The in-memory rate limiter assumes one.
 - The OpenAPI document is hand-written. A test checks that every route is listed, not that every schema is exact.

@@ -24,7 +24,7 @@ make run                          # http://localhost:3000
 openssl rand -base64 64           # JWT_SECRET
 ```
 
-`MIGRATE_ON_START=true` applies the migrations when the server starts. This service is the API only: the sign-in pages live in a separate project (`web-auth`, React), which talks to it over HTTP. Set `FRONTEND_URL` to where that app is served.
+`MIGRATE_ON_START=true` applies the migrations when the server starts. This service is the API only: the sign-in pages live in a separate project, [react-auth](https://github.com/iskanderovv/react-auth), which talks to it over HTTP. Set `FRONTEND_URL` to where that app is served.
 
 API documentation is at `/docs`. Set `SWAGGER_USER` and `SWAGGER_PASSWORD` to protect it with a browser login.
 
