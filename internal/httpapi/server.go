@@ -70,9 +70,6 @@ func (s *Server) Handler() http.Handler {
 			if s.limits {
 				r.Use(limit(20, time.Minute))
 			}
-			if s.cfg.DevSPA {
-				r.Get("/callback", s.spa)
-			}
 			r.Get("/{provider}", s.start)
 			r.Get("/{provider}/callback", s.callback)
 
@@ -87,12 +84,5 @@ func (s *Server) Handler() http.Handler {
 			r.With(s.requireAccess).Delete("/link/{provider}", s.unlink)
 		})
 	})
-
-	if s.cfg.DevSPA {
-		r.Get("/", s.spa)
-		r.Get("/logo.png", s.logo)
-		r.Get("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
-		r.Get("/settings/accounts", s.spa)
-	}
 	return r
 }

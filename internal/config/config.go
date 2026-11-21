@@ -43,7 +43,6 @@ type Config struct {
 	BodyLimit      int64
 	MigrateOnStart bool
 	RateLimitOff   bool
-	DevSPA         bool
 }
 
 func (c Config) Production() bool { return c.Env == "production" }
@@ -125,7 +124,6 @@ func parse(get func(string) string) (Config, error) {
 		BodyLimit:      int64(integer("BODY_LIMIT_BYTES", 10240, 256, 10<<20)),
 		MigrateOnStart: boolean("MIGRATE_ON_START"),
 		RateLimitOff:   boolean("RATE_LIMIT_OFF"),
-		DevSPA:         boolean("DEV_SPA"),
 	}
 
 	accessTTL, err := parseTTL(str("JWT_ACCESS_TTL", "15m"))

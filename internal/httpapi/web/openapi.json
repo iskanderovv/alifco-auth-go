@@ -31,7 +31,7 @@
       "get": {
         "tags": ["auth"],
         "summary": "Start a login",
-        "description": "Redirects the browser to the provider and sets the oauth_tx cookie.",
+        "description": "Redirects the browser to the provider and sets the oauth_tx cookie. **Try it out cannot run this one:** the call follows the redirect to the provider, and the browser blocks that cross-site request (it shows as a CORS error). Open it in the address bar instead: [google](/auth/google), [facebook](/auth/facebook), [telegram](/auth/telegram).",
         "parameters": [{ "$ref": "#/components/parameters/provider" }],
         "responses": {
           "302": { "description": "Redirect to the provider" },
@@ -43,7 +43,7 @@
       "get": {
         "tags": ["auth"],
         "summary": "Provider callback",
-        "description": "Always a redirect to the frontend. Login: FRONTEND_URL/auth/callback on success (no token in the URL; the frontend then calls /auth/refresh) or ?error=<code>. Link: FRONTEND_URL/settings/accounts?linked=<provider> or ?error=<code>. Error codes: access_denied, invalid_state, provider_error, internal_error, identity_taken, already_linked.",
+        "description": "Called by the provider, not by hand, so Try it out cannot run it either. Always a redirect to the frontend. Login: FRONTEND_URL/auth/callback on success (no token in the URL; the frontend then calls /auth/refresh) or ?error=<code>. Link: FRONTEND_URL/settings/accounts?linked=<provider> or ?error=<code>. Error codes: access_denied, invalid_state, provider_error, internal_error, identity_taken, already_linked.",
         "parameters": [
           { "$ref": "#/components/parameters/provider" },
           { "name": "code", "in": "query", "schema": { "type": "string" } },
@@ -59,7 +59,7 @@
       "post": {
         "tags": ["auth"],
         "summary": "Rotate the refresh token",
-        "description": "Needs the refresh_token cookie. Returns a new access token and sets a new cookie. Presenting an already used refresh token revokes the whole session.",
+        "description": "Needs the refresh_token cookie, which is set when you sign in through the web app of this same site, so sign in there first and then run this call. Returns a new access token and sets a new cookie. Presenting an already used refresh token revokes the whole session. Run it once: a second call with the same cookie in another tab counts as a reuse and ends the session.",
         "security": [{ "refreshCookie": [] }],
         "parameters": [{ "$ref": "#/components/parameters/csrf" }],
         "responses": {
@@ -73,7 +73,7 @@
       "post": {
         "tags": ["auth"],
         "summary": "Log out",
-        "description": "Revokes the whole session and clears the cookie. Always 204.",
+        "description": "Needs the refresh_token cookie from signing in through the web app. Revokes the whole session and clears the cookie. Always 204.",
         "security": [{ "refreshCookie": [] }],
         "parameters": [{ "$ref": "#/components/parameters/csrf" }],
         "responses": {
@@ -86,7 +86,7 @@
       "post": {
         "tags": ["auth"],
         "summary": "Start linking another provider",
-        "description": "Returns the provider URL. Navigate the browser to it; the callback attaches the account and redirects to the settings page.",
+        "description": "Needs an access token (Authorize, then paste the accessToken from /auth/refresh). Returns the provider URL. Navigate the browser to it; the callback attaches the account and redirects to the settings page.",
         "security": [{ "bearer": [] }],
         "parameters": [{ "$ref": "#/components/parameters/provider" }],
         "responses": {

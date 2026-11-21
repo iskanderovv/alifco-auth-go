@@ -3,7 +3,6 @@ package httpapi
 import (
 	_ "embed"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -11,14 +10,8 @@ import (
 //go:embed web/openapi.json
 var openAPIDocument []byte
 
-//go:embed web/spa.html
-var spaPage string
-
 //go:embed web/docs.html
 var docsPage []byte
-
-//go:embed web/logo.png
-var logoPNG []byte
 
 func (s *Server) mountDocs(r chi.Router) {
 	r.Group(func(r chi.Router) {
@@ -34,15 +27,4 @@ func (s *Server) mountDocs(r chi.Router) {
 			_, _ = w.Write(openAPIDocument)
 		})
 	})
-}
-
-func (s *Server) spa(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(strings.Replace(spaPage, "%API%", "", 1)))
-}
-
-func (s *Server) logo(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", "public, max-age=86400")
-	_, _ = w.Write(logoPNG)
 }

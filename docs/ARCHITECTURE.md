@@ -168,7 +168,7 @@ Each row is a choice where there was a real alternative.
 | 17 | Tests against a real PostgreSQL, one throwaway schema per test, fake providers | Mocking the store | The guarantees that matter (atomic update, unique indexes, row locks) are database behaviour that a mock cannot show | A database is needed to run the tests |
 | 18 | Logs carry no headers, cookies or query strings | Default request logging | Tokens, the OAuth `code` and `state` all travel in those places | Less detail per request |
 | 19 | The OpenAPI document is a hand-written JSON file, tested for the routes it must list | Generating it from annotations | One source of truth, no code generation step, and a test fails when a route is missing | It can drift from the handlers on parameters and schemas |
-| 20 | The dev SPA is embedded in the binary and served on the same origin | A separate dev server and proxy | One https tunnel serves everything, which is what a demo needs | Development convenience only, switched on with `DEV_SPA=true` |
+| 20 | The service is an API only. The frontend is a separate project on its own hostname, a subdomain of the same site | Serving pages from the same binary | The two can be built, tested and deployed on their own, and the cookie and CORS design is exercised for real: `SameSite=Lax` cookies travel between subdomains of one site, and CORS allows exactly one origin | Two hostnames to run, and the provider callbacks are registered on the API hostname |
 | 21 | Packages split by responsibility (`token`, `identity`, `provider`, `store`, `httpapi`), not by layer (`handler`, `service`, `repository`, `model`) | The layered layout | Layer packages such as `model` and `service` pull every feature into one place and invite import cycles. Here a package owns one rule and its tests, and dependencies run one way, from `httpapi` to the services to `store`. `pkg/` is not used: nothing here is meant to be imported by other projects | A reader used to layers has to learn the names once. The mapping is `httpapi` = handler and middleware, `store` = repository |
 
 ## Layout
@@ -183,7 +183,7 @@ internal/token              access and refresh tokens
 internal/oauthtx            state and PKCE transactions
 internal/provider           adapters and the shared OIDC helpers
 internal/identity           find or create, link, unlink
-internal/httpapi            routes, middleware, handlers, OpenAPI, dev SPA
+internal/httpapi            routes, middleware, handlers, OpenAPI
 internal/db                 pool and migrations
 internal/testutil           a throwaway schema per test
 ```

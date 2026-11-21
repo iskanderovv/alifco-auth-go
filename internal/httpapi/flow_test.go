@@ -539,31 +539,3 @@ func TestAccessLogLeaksNothing(t *testing.T) {
 		t.Fatal("the access log should still record the path")
 	}
 }
-
-func TestDevSPAServesThePageAndTheLogo(t *testing.T) {
-	a := newApp(t, func(c *config.Config) { c.DevSPA = true })
-
-	for _, path := range []string{"/", "/auth/callback", "/settings/accounts"} {
-		res := a.do(http.MethodGet, path, nil)
-		if res.Code != http.StatusOK || !strings.Contains(res.Header().Get("Content-Type"), "text/html") {
-			t.Fatalf("%s = %d %s", path, res.Code, res.Header().Get("Content-Type"))
-		}
-		if strings.Contains(res.Body.String(), "%API%") {
-			t.Fatalf("%s still has the API placeholder", path)
-		}
-	}
-
-	logo := a.do(http.MethodGet, "/logo.png", nil)
-	if logo.Code != http.StatusOK || logo.Header().Get("Content-Type") != "image/png" ||
-		!strings.HasPrefix(logo.Body.String(), "\x89PNG") {
-		t.Fatalf("logo = %d %s", logo.Code, logo.Header().Get("Content-Type"))
-	}
-	if res := a.do(http.MethodGet, "/favicon.ico", nil); res.Code != http.StatusNoContent {
-		t.Fatalf("favicon = %d", res.Code)
-	}
-
-	off := newApp(t, nil)
-	if res := off.do(http.MethodGet, "/logo.png", nil); res.Code != http.StatusNotFound {
-		t.Fatalf("the logo must not be served without DEV_SPA, got %d", res.Code)
-	}
-}

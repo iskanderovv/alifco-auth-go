@@ -24,7 +24,7 @@ make run                          # http://localhost:3000
 openssl rand -base64 64           # JWT_SECRET
 ```
 
-`MIGRATE_ON_START=true` applies the migrations when the server starts. With `DEV_SPA=true` the server also serves a small sign-in page at `/`, so one address is enough to try everything by hand.
+`MIGRATE_ON_START=true` applies the migrations when the server starts. This service is the API only: the sign-in pages live in a separate project (`web-auth`, React), which talks to it over HTTP. Set `FRONTEND_URL` to where that app is served.
 
 API documentation is at `/docs`. Set `SWAGGER_USER` and `SWAGGER_PASSWORD` to protect it with a browser login.
 
@@ -39,7 +39,7 @@ A provider is enabled only when both of its variables are set. The service start
 Facebook: request `public_profile` and `email`; the app can stay in development mode.
 Telegram: in BotFather open the bot, Login Widget, and switch to OpenID Connect. The values shown there are the client id and secret.
 
-Telegram only accepts https redirect URIs, so locally it needs a tunnel. With `DEV_SPA=true` one tunnel is enough:
+Telegram only accepts https redirect URIs, so locally it needs a tunnel to the API:
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
@@ -59,7 +59,7 @@ API_BASE_URL=https://<tunnel> FRONTEND_URL=https://<tunnel> COOKIE_SECURE=true m
 | `COOKIE_SECURE`, `COOKIE_SAME_SITE` | `false`, `lax` | `none` needs `COOKIE_SECURE=true`. Production refuses insecure values |
 | `FACEBOOK_GRAPH_VERSION` | `v25.0` | |
 | `HTTP_TIMEOUT_MS`, `BODY_LIMIT_BYTES` | `5000`, `10240` | |
-| `MIGRATE_ON_START`, `DEV_SPA`, `RATE_LIMIT_OFF` | `false` | `RATE_LIMIT_OFF` is for load tests and is refused in production |
+| `MIGRATE_ON_START`, `RATE_LIMIT_OFF` | `false` | `RATE_LIMIT_OFF` is for load tests and is refused in production |
 
 ## API
 
@@ -139,7 +139,7 @@ internal/token    access and refresh tokens
 internal/oauthtx  state and PKCE transactions
 internal/provider one adapter per provider, shared OIDC helpers
 internal/identity find or create, link, unlink
-internal/httpapi  routes, middleware, handlers, OpenAPI, dev SPA
+internal/httpapi  routes, middleware, handlers, OpenAPI
 internal/db       pool and embedded migrations
 ```
 
