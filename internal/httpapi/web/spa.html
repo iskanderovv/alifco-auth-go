@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Sign in</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: #f5f6f8; color: #14171a;
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .page { max-width: 420px; margin: 0 auto; padding: 72px 16px 48px; }
+    .card { background: #fff; border: 1px solid #e6e8eb; border-radius: 14px; padding: 32px 28px; }
+    h1 { font-size: 24px; margin: 0 0 6px; text-align: center; }
+    .sub { color: #5f6b7a; text-align: center; margin: 0 0 28px; }
+    .toast { padding: 11px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+    .toast.ok { background: #e7f6ec; color: #17623a; }
+    .toast.error { background: #fdecec; color: #a12622; }
+    .toast.info { background: #eef1f5; color: #3a4553; }
+    .provider {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px;
+      font: inherit; font-weight: 600; color: #14171a; background: #fff; text-decoration: none;
+      border: 1px solid #d5d9de; border-radius: 10px; cursor: pointer; margin-bottom: 10px;
+    }
+    .provider:hover { background: #f7f8fa; border-color: #b9bfc7; }
+    .icon {
+      width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center;
+      justify-content: center; flex: none; color: #fff; font-weight: 700; font-size: 14px;
+    }
+    .icon svg { width: 15px; height: 15px; fill: #fff; }
+    .google { background: #4285f4; }
+    .facebook { background: #1877f2; }
+    .telegram { background: #229ed9; }
+    .head { display: flex; align-items: center; gap: 14px; }
+    .avatar {
+      width: 56px; height: 56px; border-radius: 50%; background: #dfe3e8; color: #4a5563; flex: none;
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; object-fit: cover;
+    }
+    .who { flex: 1; min-width: 0; }
+    .name { font-weight: 700; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .email { color: #5f6b7a; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .signout {
+      display: block; width: 100%; margin-top: 28px; padding: 12px 16px; font: inherit; font-weight: 600;
+      color: #fff; background: #d92d20; border: 0; border-radius: 10px; cursor: pointer;
+    }
+    .signout:hover { background: #b42318; }
+    h2 { font-size: 15px; margin: 28px 0 4px; }
+    .hint { color: #5f6b7a; font-size: 14px; margin: 0 0 8px; }
+    .row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #eef0f2; }
+    .row .info { flex: 1; min-width: 0; line-height: 1.3; }
+    .row .label { display: block; font-weight: 600; }
+    .row .state { display: block; color: #17623a; font-size: 13px; }
+    .row .state.off { color: #8a94a1; }
+    .small {
+      font: inherit; font-size: 14px; font-weight: 600; padding: 7px 12px; width: 132px; white-space: nowrap; flex: none;
+      background: #fff; color: #14171a; border: 1px solid #d5d9de; border-radius: 8px; cursor: pointer;
+    }
+    .small:hover:not([disabled]) { background: #f7f8fa; }
+    .small.primary { background: #14171a; color: #fff; border-color: #14171a; }
+    .small.primary:hover { background: #2a2f36; }
+    .small[disabled] { color: #aab1ba; cursor: not-allowed; }
+    .small.danger { background: #fdecec; color: #a12622; border-color: #f3c4c1; }
+    .small.danger:hover:not([disabled]) { background: #fbdcda; }
+    .small.busy, .provider.busy { opacity: .65; pointer-events: none; }
+    .toast { display: flex; align-items: flex-start; gap: 10px; }
+    .toast span { flex: 1; }
+    .toast button {
+      font: inherit; line-height: 1; padding: 0 2px; border: 0; background: none; color: inherit;
+      opacity: .6; cursor: pointer; font-size: 18px;
+    }
+    .toast button:hover { opacity: 1; }
+    .since { color: #8a94a1; font-size: 13px; }
+    .footer { margin-top: 20px; text-align: center; font-size: 13px; color: #8a94a1; }
+    .footer a { color: #5f6b7a; }
+    .loading { display: flex; justify-content: center; padding: 56px 0; }
+    .spinner {
+      width: 28px; height: 28px; border-radius: 50%; border: 3px solid #e6e8eb; border-top-color: #5f6b7a;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    :focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    @media (max-width: 480px) { .page { padding-top: 32px; } .card { padding: 24px 18px; } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <main class="page">
+      <div id="toast" role="status" aria-live="polite"></div>
+      <div class="card" id="card"><div class="loading"><div class="spinner" role="progressbar" aria-label="Loading"></div></div></div>
+      <p class="footer" id="footer"></p>
+    </main>
+  </div>
+
+  <script>
+    const API = "%API%";
+
+    const PROVIDERS = [
+      { id: 'google', name: 'Google', icon: 'G' },
+      { id: 'facebook', name: 'Facebook', icon: 'f' },
+      { id: 'telegram', name: 'Telegram', icon: null },
+    ];
+
+    const MESSAGES = {
+      access_denied: 'Sign-in was cancelled. Nothing was changed.',
+      invalid_state: 'That sign-in link has expired. Please try again.',
+      provider_error: 'We could not finish signing you in. Please try again.',
+      internal_error: 'Something went wrong on our side. Please try again.',
+      identity_taken: 'That account already has its own profile. Sign in with it to use that profile.',
+      already_linked: 'That account is already connected.',
+      last_identity: 'You need at least one way to sign in, so the last one cannot be removed.',
+      not_linked: 'That account is not connected.',
+      provider_not_found: 'That sign-in option is not available right now.',
+      token_missing: 'Your session has ended. Please sign in again.',
+      token_invalid: 'Your session has ended. Please sign in again.',
+    };
+
+    const state = { token: null, user: null };
+    let refreshing = null;
+
+    function h(tag, props, ...children) {
+      const el = document.createElement(tag);
+      for (const [key, value] of Object.entries(props || {})) {
+        if (key === 'class') el.className = value;
+        else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+        else if (value === true) el.setAttribute(key, '');
+        else if (value !== false && value != null) el.setAttribute(key, value);
+      }
+      for (const child of children.flat()) {
+        if (child != null && child !== false) el.append(child instanceof Node ? child : document.createTextNode(String(child)));
+      }
+      return el;
+    }
+
+    function planeIcon() {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M20.7 4.3 3.4 11c-.9.3-.9.9-.2 1.1l4.4 1.4 1.7 5.2c.2.6.4.6.8.2l2.4-2.3 4.5 3.3c.8.5 1.4.2 1.6-.8l2.9-13.8c.3-1.2-.4-1.7-1.2-1.4z');
+      svg.append(path);
+      return svg;
+    }
+
+    function icon(p) {
+      return h('span', { class: 'icon ' + p.id }, p.icon || planeIcon());
+    }
+
+    async function api(method, path, options) {
+      const { auth = false, csrf = false, retry = true } = options || {};
+      const headers = {};
+      if (auth && state.token) headers.Authorization = 'Bearer ' + state.token;
+      if (csrf) headers['X-Requested-With'] = 'fetch';
+      const res = await fetch(API + path, { method, credentials: 'include', headers });
+      const body = await res.json().catch(() => null);
+      const code = body && body.error && body.error.code;
+      if (auth && retry && res.status === 401 && code === 'token_expired' && (await refresh())) {
+        return api(method, path, { auth, csrf, retry: false });
+      }
+      return { ok: res.ok, status: res.status, body, code };
+    }
+
+    function refresh() {
+      if (!refreshing) {
+        refreshing = api('POST', '/auth/refresh', { csrf: true })
+          .then((r) => {
+            state.token = r.ok ? r.body.accessToken : null;
+            return r.ok;
+          })
+          .finally(() => { refreshing = null; });
+      }
+      return refreshing;
+    }
+
+    async function loadUser() {
+      const r = await api('GET', '/me', { auth: true });
+      state.user = r.ok ? r.body : null;
+      return r.ok;
+    }
+
+    let toastTimer;
+    function toast(kind, text) {
+      clearTimeout(toastTimer);
+      const box = document.getElementById('toast');
+      if (!text) return box.replaceChildren();
+      box.replaceChildren(h('div', { class: 'toast ' + kind, role: kind === 'error' ? 'alert' : null },
+        h('span', null, text),
+        h('button', { type: 'button', 'aria-label': 'Dismiss', onclick: () => box.replaceChildren() }, '\u00d7')));
+      if (kind !== 'error') toastTimer = setTimeout(() => box.replaceChildren(), 6000);
+    }
+
+    async function busy(button, label, work) {
+      const original = button.textContent;
+      button.classList.add('busy');
+      button.setAttribute('aria-busy', 'true');
+      button.textContent = label;
+      try { return await work(); }
+      finally {
+        button.classList.remove('busy');
+        button.removeAttribute('aria-busy');
+        if (button.isConnected) button.textContent = original;
+      }
+    }
+
+    const providerName = (id) => (PROVIDERS.find((p) => p.id === id) || { name: id }).name;
+
+    async function connect(id) {
+      if (!state.token && !(await refresh())) return toast('error', MESSAGES.token_missing);
+      const r = await api('POST', '/auth/link/' + id, { auth: true });
+      if (r.ok) location.href = r.body.url;
+      else toast('error', MESSAGES[r.code] || MESSAGES.internal_error);
+    }
+
+    async function disconnect(id) {
+      toast();
+      const r = await api('DELETE', '/auth/link/' + id, { auth: true });
+      if (r.ok) {
+        toast('ok', providerName(id) + ' disconnected.');
+        await loadUser();
+      } else {
+        toast('error', MESSAGES[r.code] || MESSAGES.internal_error);
+      }
+      render();
+    }
+
+    async function signOut() {
+      await api('POST', '/auth/logout', { csrf: true });
+      state.token = null;
+      state.user = null;
+      toast('info', 'You have been signed out.');
+      render();
+    }
+
+    function renderSignedOut() {
+      return [
+        h('h1', null, 'Welcome'),
+        h('p', { class: 'sub' }, 'Sign in to continue'),
+        PROVIDERS.map((p) => h('a', {
+          class: 'provider',
+          href: API + '/auth/' + p.id,
+          onclick: (e) => e.currentTarget.classList.add('busy'),
+        }, icon(p), 'Continue with ' + p.name)),
+      ];
+    }
+
+    function avatarImage(src, initial) {
+      const img = h('img', { class: 'avatar', src, alt: '', referrerpolicy: 'no-referrer' });
+      img.addEventListener('error', () => img.replaceWith(h('div', { class: 'avatar' }, initial)));
+      return img;
+    }
+
+    function connectButton(p) {
+      const button = h('button', { type: 'button', class: 'small primary', 'aria-label': 'Connect ' + p.name }, 'Connect');
+      button.addEventListener('click', () => busy(button, 'Connecting\u2026', () => connect(p.id)));
+      return button;
+    }
+
+    function disconnectButton(p, onlyOne) {
+      const button = h('button', {
+        type: 'button',
+        class: 'small',
+        disabled: onlyOne,
+        'aria-label': 'Disconnect ' + p.name,
+        title: onlyOne ? 'You need at least one way to sign in' : '',
+      }, 'Disconnect');
+      let armed;
+      button.addEventListener('click', () => {
+        if (!armed) {
+          armed = setTimeout(() => { armed = null; button.textContent = 'Disconnect'; button.classList.remove('danger'); }, 4000);
+          button.textContent = 'Are you sure?';
+          button.classList.add('danger');
+          return;
+        }
+        clearTimeout(armed);
+        busy(button, 'Disconnecting\u2026', () => disconnect(p.id));
+      });
+      return button;
+    }
+
+    const memberSince = (iso) => {
+      const date = new Date(iso);
+      return isNaN(date) ? '' : 'Member since ' + date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    };
+
+    function renderSignedIn() {
+      const user = state.user;
+      const linked = new Set(user.providers);
+      const onlyOne = linked.size <= 1;
+      const initial = (user.name || '?').trim().charAt(0).toUpperCase();
+
+      return [
+        h('div', { class: 'head' },
+          user.avatarUrl
+            ? avatarImage(user.avatarUrl, initial)
+            : h('div', { class: 'avatar' }, initial),
+          h('div', { class: 'who' },
+            h('div', { class: 'name' }, user.name),
+            user.email ? h('div', { class: 'email' }, user.email) : null,
+            user.createdAt ? h('div', { class: 'since' }, memberSince(user.createdAt)) : null)),
+        h('h2', null, 'Connected accounts'),
+        h('p', { class: 'hint' }, 'Connect more accounts to sign in with any of them.'),
+        PROVIDERS.map((p) => {
+          const on = linked.has(p.id);
+          return h('div', { class: 'row' },
+            icon(p),
+            h('div', { class: 'info' },
+              h('span', { class: 'label' }, p.name),
+              h('span', { class: 'state' + (on ? '' : ' off') }, on ? 'Connected' : 'Not connected')),
+            on ? disconnectButton(p, onlyOne) : connectButton(p));
+        }),
+        h('button', { type: 'button', class: 'signout', onclick: (e) => busy(e.currentTarget, 'Signing out\u2026', signOut) }, 'Sign out'),
+      ];
+    }
+
+    function render() {
+      document.title = state.user ? 'Your account' : 'Sign in';
+      const content = state.user ? renderSignedIn() : renderSignedOut();
+      document.getElementById('card').replaceChildren(...content.flat(Infinity));
+      document.getElementById('footer').replaceChildren(h('a', { href: API + '/docs', target: '_blank', rel: 'noopener' }, 'API documentation'));
+    }
+
+    async function init() {
+      const params = new URLSearchParams(location.search);
+      const error = params.get('error');
+      const linked = params.get('linked');
+      const fromCallback = location.pathname === '/auth/callback';
+
+      if (location.pathname !== '/') history.replaceState(null, '', '/');
+
+      const signedIn = (await refresh()) && (await loadUser());
+      if (error) toast('error', MESSAGES[error] || MESSAGES.internal_error);
+      else if (linked) toast('ok', providerName(linked) + ' connected.');
+      else if (signedIn && fromCallback) toast('ok', 'Welcome, ' + state.user.name + '.');
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OAuth service",
+    "version": "1.0",
+    "description": "Login with Google, Facebook and Telegram, written in Go. Every error has the shape { \"error\": { \"code\", \"message\" } }."
+  },
+  "tags": [{ "name": "auth" }, { "name": "users" }, { "name": "health" }],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "Liveness check, does not touch the database",
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["users"],
+        "summary": "The signed-in user and the providers linked to them",
+        "security": [{ "bearer": [] }],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Profile" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/{provider}": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "Start a login",
+        "description": "Redirects the browser to the provider and sets the oauth_tx cookie.",
+        "parameters": [{ "$ref": "#/components/parameters/provider" }],
+        "responses": {
+          "302": { "description": "Redirect to the provider" },
+          "404": { "$ref": "#/components/responses/ProviderNotFound" }
+        }
+      }
+    },
+    "/auth/{provider}/callback": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "Provider callback",
+        "description": "Always a redirect to the frontend. Login: FRONTEND_URL/auth/callback on success (no token in the URL; the frontend then calls /auth/refresh) or ?error=<code>. Link: FRONTEND_URL/settings/accounts?linked=<provider> or ?error=<code>. Error codes: access_denied, invalid_state, provider_error, internal_error, identity_taken, already_linked.",
+        "parameters": [
+          { "$ref": "#/components/parameters/provider" },
+          { "name": "code", "in": "query", "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "302": { "description": "Redirect to the frontend" },
+          "404": { "$ref": "#/components/responses/ProviderNotFound" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Rotate the refresh token",
+        "description": "Needs the refresh_token cookie. Returns a new access token and sets a new cookie. Presenting an already used refresh token revokes the whole session.",
+        "security": [{ "refreshCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/csrf" }],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccessToken" } } } },
+          "401": { "description": "refresh_missing, refresh_invalid, refresh_expired, refresh_reused", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "$ref": "#/components/responses/Csrf" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Log out",
+        "description": "Revokes the whole session and clears the cookie. Always 204.",
+        "security": [{ "refreshCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/csrf" }],
+        "responses": {
+          "204": { "description": "Logged out" },
+          "403": { "$ref": "#/components/responses/Csrf" }
+        }
+      }
+    },
+    "/auth/link/{provider}": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Start linking another provider",
+        "description": "Returns the provider URL. Navigate the browser to it; the callback attaches the account and redirects to the settings page.",
+        "security": [{ "bearer": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/provider" }],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LinkUrl" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/ProviderNotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["auth"],
+        "summary": "Unlink a provider",
+        "description": "The last remaining provider cannot be removed.",
+        "security": [{ "bearer": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/provider" }],
+        "responses": {
+          "204": { "description": "Unlinked" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "provider_not_found, not_linked", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "409": { "description": "last_identity", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+      "refreshCookie": { "type": "apiKey", "in": "cookie", "name": "refresh_token" }
+    },
+    "parameters": {
+      "provider": { "name": "provider", "in": "path", "required": true, "schema": { "type": "string", "enum": ["google", "facebook", "telegram"] } },
+      "csrf": { "name": "X-Requested-With", "in": "header", "required": true, "description": "Must be \"fetch\"", "schema": { "type": "string", "example": "fetch" } }
+    },
+    "responses": {
+      "Unauthorized": { "description": "token_missing, token_invalid, token_expired", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "ProviderNotFound": { "description": "provider_not_found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Csrf": { "description": "csrf_header_missing, csrf_origin_invalid", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "token_invalid" },
+              "message": { "type": "string", "example": "token_invalid" }
+            }
+          }
+        }
+      },
+      "Health": { "type": "object", "properties": { "status": { "type": "string", "example": "ok" } } },
+      "AccessToken": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string", "description": "Send as \"Authorization: Bearer <token>\"" },
+          "expiresIn": { "type": "integer", "example": 900, "description": "Seconds until it expires" }
+        }
+      },
+      "LinkUrl": { "type": "object", "properties": { "url": { "type": "string", "description": "Navigate the browser here to finish linking" } } },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "Ali Valiyev" },
+          "email": { "type": "string", "nullable": true, "description": "Only set when the provider verified it" },
+          "avatarUrl": { "type": "string", "nullable": true },
+          "providers": { "type": "array", "items": { "type": "string" }, "example": ["google", "telegram"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
