@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>Sign in</title>
+  <link rel="icon" type="image/png" href="/logo.png">
   <style>
     * { box-sizing: border-box; }
     body {
@@ -28,11 +29,7 @@
     .provider:hover { background: #f7f8fa; border-color: #b9bfc7; }
     .icon { width: 24px; height: 24px; display: inline-flex; flex: none; }
     .icon svg { width: 100%; height: 100%; }
-    .brand {
-      width: 44px; height: 44px; margin: 0 auto 18px; border-radius: 12px; background: #14171a; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .brand svg { width: 22px; height: 22px; }
+    .brand { display: block; width: 76px; height: 76px; margin: 0 auto 12px; }
     .field { margin-bottom: 14px; }
     .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
     .field input {
@@ -171,9 +168,7 @@
     }
 
     function brandMark() {
-      const el = h('div', { class: 'brand', 'aria-hidden': 'true' });
-      el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>';
-      return el;
+      return h('img', { class: 'brand', src: '/logo.png', alt: 'Alifco', width: 76, height: 76 });
     }
 
     async function api(method, path, options) {

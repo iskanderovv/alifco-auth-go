@@ -90,6 +90,7 @@ func (s *Server) Handler() http.Handler {
 
 	if s.cfg.DevSPA {
 		r.Get("/", s.spa)
+		r.Get("/logo.png", s.logo)
 		r.Get("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
 		r.Get("/settings/accounts", s.spa)
 	}
