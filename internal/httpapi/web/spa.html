@@ -11,28 +11,52 @@
       margin: 0; min-height: 100vh; background: #f5f6f8; color: #14171a;
       font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
-    .page { max-width: 420px; margin: 0 auto; padding: 72px 16px 48px; }
-    .card { background: #fff; border: 1px solid #e6e8eb; border-radius: 14px; padding: 32px 28px; }
+    .page { max-width: 480px; margin: 0 auto; padding: 72px 16px 48px; }
+    .card { background: #fff; border: 1px solid #e6e8eb; border-radius: 14px; padding: 36px 40px; }
     h1 { font-size: 24px; margin: 0 0 6px; text-align: center; }
     .sub { color: #5f6b7a; text-align: center; margin: 0 0 28px; }
-    .toast { padding: 11px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+    #toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100% - 32px)); z-index: 10; }
+    .toast { padding: 11px 14px; border-radius: 10px; font-size: 14px; box-shadow: 0 4px 16px rgba(20, 23, 26, .12); }
     .toast.ok { background: #e7f6ec; color: #17623a; }
     .toast.error { background: #fdecec; color: #a12622; }
     .toast.info { background: #eef1f5; color: #3a4553; }
     .provider {
-      display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 12px 16px;
       font: inherit; font-weight: 600; color: #14171a; background: #fff; text-decoration: none;
       border: 1px solid #d5d9de; border-radius: 10px; cursor: pointer; margin-bottom: 10px;
     }
     .provider:hover { background: #f7f8fa; border-color: #b9bfc7; }
-    .icon {
-      width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center;
-      justify-content: center; flex: none; color: #fff; font-weight: 700; font-size: 14px;
+    .icon { width: 24px; height: 24px; display: inline-flex; flex: none; }
+    .icon svg { width: 100%; height: 100%; }
+    .brand {
+      width: 44px; height: 44px; margin: 0 auto 18px; border-radius: 12px; background: #14171a; color: #fff;
+      display: flex; align-items: center; justify-content: center;
     }
-    .icon svg { width: 15px; height: 15px; fill: #fff; }
-    .google { background: #4285f4; }
-    .facebook { background: #1877f2; }
-    .telegram { background: #229ed9; }
+    .brand svg { width: 22px; height: 22px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field input {
+      width: 100%; font: inherit; padding: 11px 14px; color: #14171a; background: #fff;
+      border: 1px solid #d5d9de; border-radius: 10px;
+    }
+    .field input::placeholder { color: #9aa3ae; }
+    .field input:hover { border-color: #b9bfc7; }
+    .field input:focus-visible { outline: 2px solid #2563eb; outline-offset: 0; border-color: #2563eb; }
+    .field input[aria-invalid="true"] { border-color: #d92d20; }
+    .field .error { color: #a12622; font-size: 13px; margin-top: 6px; }
+    .primary-button {
+      display: block; width: 100%; font: inherit; font-weight: 600; padding: 12px 16px; color: #fff;
+      background: #14171a; border: 0; border-radius: 10px; cursor: pointer;
+    }
+    .primary-button:hover { background: #2a2f36; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: #8a94a1; font-size: 13px; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e6e8eb; }
+    .switch { margin: 24px 0 0; text-align: center; font-size: 14px; color: #5f6b7a; }
+    .link {
+      font: inherit; font-weight: 600; color: #14171a; background: none; border: 0; padding: 0;
+      cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+    }
+    .provider:last-of-type { margin-bottom: 0; }
     .head { display: flex; align-items: center; gap: 14px; }
     .avatar {
       width: 56px; height: 56px; border-radius: 50%; background: #dfe3e8; color: #4a5563; flex: none;
@@ -81,7 +105,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     :focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-    @media (max-width: 480px) { .page { padding-top: 32px; } .card { padding: 24px 18px; } }
+    @media (max-width: 520px) { .page { padding-top: 32px; } .card { padding: 24px 18px; } }
     @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
   </style>
 </head>
@@ -98,9 +122,9 @@
     const API = "%API%";
 
     const PROVIDERS = [
-      { id: 'google', name: 'Google', icon: 'G' },
-      { id: 'facebook', name: 'Facebook', icon: 'f' },
-      { id: 'telegram', name: 'Telegram', icon: null },
+      { id: 'google', name: 'Google' },
+      { id: 'facebook', name: 'Facebook' },
+      { id: 'telegram', name: 'Telegram' },
     ];
 
     const MESSAGES = {
@@ -134,17 +158,22 @@
       return el;
     }
 
-    function planeIcon() {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('viewBox', '0 0 24 24');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M20.7 4.3 3.4 11c-.9.3-.9.9-.2 1.1l4.4 1.4 1.7 5.2c.2.6.4.6.8.2l2.4-2.3 4.5 3.3c.8.5 1.4.2 1.6-.8l2.9-13.8c.3-1.2-.4-1.7-1.2-1.4z');
-      svg.append(path);
-      return svg;
-    }
+    const ICONS = {
+      google: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.58-5.17 3.58-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.72-4.95H1.27v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.28 14.29A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.38-2.29v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.39l4.01-3.1z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.23 0 12 0A12 12 0 0 0 1.27 6.61l4.01 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>',
+      facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12.07C24 5.45 18.63.07 12 .07S0 5.45 0 12.07c0 5.99 4.39 10.95 10.13 11.85v-8.39H7.08v-3.47h3.05V9.43c0-3.01 1.79-4.67 4.53-4.67 1.31 0 2.69.23 2.69.23v2.95h-1.51c-1.49 0-1.96.93-1.96 1.87v2.25h3.33l-.53 3.47h-2.8v8.39C19.61 23.02 24 18.06 24 12.07z"/></svg>',
+      telegram: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#229ED9"/><path fill="#fff" d="M5.43 11.87c3.5-1.52 5.83-2.53 7-3.01 3.33-1.39 4.02-1.63 4.47-1.64.1 0 .32.02.47.14.12.1.16.23.17.33.02.09.04.31.02.47-.18 1.9-.96 6.5-1.36 8.63-.17.9-.5 1.2-.82 1.23-.7.06-1.23-.46-1.9-.9-1.06-.7-1.65-1.13-2.68-1.8-1.19-.78-.42-1.21.26-1.91.18-.18 3.25-2.98 3.31-3.23.01-.03.01-.15-.06-.21-.07-.06-.17-.04-.25-.02-.11.02-1.8 1.14-5.06 3.35-.48.33-.91.49-1.3.48-.43-.01-1.25-.24-1.87-.44-.75-.25-1.35-.37-1.3-.79.03-.22.33-.44.89-.67z"/></svg>',
+    };
 
     function icon(p) {
-      return h('span', { class: 'icon ' + p.id }, p.icon || planeIcon());
+      const el = h('span', { class: 'icon' });
+      el.innerHTML = ICONS[p.id];
+      return el;
+    }
+
+    function brandMark() {
+      const el = h('div', { class: 'brand', 'aria-hidden': 'true' });
+      el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>';
+      return el;
     }
 
     async function api(method, path, options) {
@@ -232,15 +261,74 @@
       render();
     }
 
+    let authMode = 'signin';
+
+    const COPY = {
+      signin: {
+        title: 'Welcome back',
+        sub: 'Sign in to continue to Alifco',
+        submit: 'Continue with email',
+        switchText: "Don't have an account?",
+        switchAction: 'Sign up',
+        title2: 'Sign in',
+      },
+      signup: {
+        title: 'Create your account',
+        sub: 'Get started with Alifco in a minute',
+        submit: 'Continue with email',
+        switchText: 'Already have an account?',
+        switchAction: 'Sign in',
+        title2: 'Sign up',
+      },
+    };
+
+    const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    function emailForm() {
+      const input = h('input', {
+        id: 'email', name: 'email', type: 'email', autocomplete: 'email', inputmode: 'email',
+        placeholder: 'you@example.com', 'aria-describedby': 'email-error', required: true,
+      });
+      const error = h('div', { class: 'error', id: 'email-error', role: 'alert' });
+      input.addEventListener('input', () => {
+        input.removeAttribute('aria-invalid');
+        error.textContent = '';
+      });
+      const form = h('form', { novalidate: true },
+        h('div', { class: 'field' }, h('label', { for: 'email' }, 'Email'), input, error),
+        h('button', { type: 'submit', class: 'primary-button' }, COPY[authMode].submit));
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!EMAIL_PATTERN.test(input.value.trim())) {
+          input.setAttribute('aria-invalid', 'true');
+          error.textContent = input.value.trim() ? 'Enter a valid email address.' : 'Enter your email address.';
+          input.focus();
+          return;
+        }
+        toast('info', 'Signing in with email is not available yet. Please continue with one of the options below.');
+      });
+      return form;
+    }
+
     function renderSignedOut() {
+      const copy = COPY[authMode];
       return [
-        h('h1', null, 'Welcome'),
-        h('p', { class: 'sub' }, 'Sign in to continue'),
+        brandMark(),
+        h('h1', null, copy.title),
+        h('p', { class: 'sub' }, copy.sub),
+        emailForm(),
+        h('div', { class: 'divider', role: 'separator' }, 'or'),
         PROVIDERS.map((p) => h('a', {
           class: 'provider',
           href: API + '/auth/' + p.id,
           onclick: (e) => e.currentTarget.classList.add('busy'),
         }, icon(p), 'Continue with ' + p.name)),
+        h('p', { class: 'switch' }, copy.switchText + ' ',
+          h('button', {
+            type: 'button',
+            class: 'link',
+            onclick: () => { authMode = authMode === 'signin' ? 'signup' : 'signin'; toast(); render(); },
+          }, copy.switchAction)),
       ];
     }
 
@@ -314,7 +402,7 @@
     }
 
     function render() {
-      document.title = state.user ? 'Your account' : 'Sign in';
+      document.title = state.user ? 'Your account' : COPY[authMode].title2;
       const content = state.user ? renderSignedIn() : renderSignedOut();
       document.getElementById('card').replaceChildren(...content.flat(Infinity));
       document.getElementById('footer').replaceChildren(h('a', { href: API + '/docs', target: '_blank', rel: 'noopener' }, 'API documentation'));
