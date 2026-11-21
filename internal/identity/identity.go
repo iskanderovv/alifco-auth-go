@@ -51,8 +51,6 @@ func (s *Service) create(ctx context.Context, providerName string, p provider.Pr
 	if err == nil {
 		return user, true, nil
 	}
-	// Another request created it first. The unique index decides, so log in its user.
-	// The transaction rolled back, so no half-made user is left behind.
 	if store.IsUniqueViolation(err) {
 		if winner, found, lookupErr := s.loginExisting(ctx, providerName, p); lookupErr == nil && found {
 			return winner, false, nil
@@ -91,7 +89,6 @@ func (s *Service) Link(ctx context.Context, userID, providerName string, p provi
 
 func (s *Service) Unlink(ctx context.Context, userID, providerName string) error {
 	return s.store.InTx(ctx, func(tx pgx.Tx) error {
-		// Lock the user row so two concurrent unlinks cannot remove every login method.
 		if _, err := tx.Exec(ctx, `SELECT id FROM users WHERE id = $1 FOR UPDATE`, userID); err != nil {
 			return err
 		}
@@ -141,7 +138,6 @@ func (s *Service) loginExisting(ctx context.Context, providerName string, p prov
 		return store.User{}, false, fmt.Errorf("touch identity: %w", err)
 	}
 
-	// Provider picture links expire, so the avatar follows the latest login. The name does not.
 	if avatar := safeAvatarURL(p.AvatarURL); avatar != "" && (user.AvatarURL == nil || *user.AvatarURL != avatar) {
 		if _, err := s.store.Pool.Exec(ctx, `UPDATE users SET avatar_url = $2, updated_at = now() WHERE id = $1`,
 			user.ID, avatar); err != nil {

@@ -23,9 +23,6 @@ func userID(r *http.Request) string {
 	return id
 }
 
-// clientIP is the address the rate limiter and the session log use. Exactly one
-// proxy (the tunnel or load balancer) is assumed in front: its entry is the last
-// one in X-Forwarded-For, and earlier entries can be forged by the client.
 func clientIP(r *http.Request) string {
 	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
 		parts := strings.Split(forwarded, ",")
@@ -71,8 +68,6 @@ func (w *statusWriter) WriteHeader(status int) {
 	w.ResponseWriter.WriteHeader(status)
 }
 
-// accessLog logs method, path and status. It never logs headers, cookies or the
-// query string: those carry tokens, codes and state values.
 func accessLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		started := time.Now()
@@ -117,8 +112,6 @@ func cors(origin string) func(http.Handler) http.Handler {
 	}
 }
 
-// csrf protects the cookie-authenticated endpoints. A custom header forces a CORS
-// preflight, so a cross-site form cannot send it, and an Origin, when present, must match.
 func csrf(frontendURL string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +148,6 @@ func basicAuth(user, password string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gotUser, gotPassword, ok := r.BasicAuth()
-			// Both are always compared, so timing does not tell which one was wrong.
 			userOK := secure.Equal(gotUser, user)
 			passwordOK := secure.Equal(gotPassword, password)
 			if !ok || !userOK || !passwordOK {

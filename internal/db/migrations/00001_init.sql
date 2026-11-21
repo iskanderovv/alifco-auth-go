@@ -20,9 +20,7 @@ CREATE TABLE oauth_identities (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     last_login_at    TIMESTAMPTZ
 );
--- A provider account belongs to at most one user.
 CREATE UNIQUE INDEX uq_identity_provider_subject ON oauth_identities (provider, provider_user_id);
--- A user has at most one account per provider.
 CREATE UNIQUE INDEX uq_identity_user_provider ON oauth_identities (user_id, provider);
 
 CREATE TABLE refresh_tokens (

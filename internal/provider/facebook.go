@@ -26,8 +26,6 @@ type FacebookOptions struct {
 
 type facebook struct{ FacebookOptions }
 
-// NewFacebook returns the Facebook adapter. Facebook is OAuth 2, not OpenID Connect,
-// so the profile is read from the Graph API with the access token.
 func NewFacebook(o FacebookOptions) Provider {
 	if o.GraphBase == "" {
 		o.GraphBase = "https://graph.facebook.com"
@@ -64,17 +62,16 @@ func (f *facebook) Authenticate(ctx context.Context, code, codeVerifier string) 
 	return Profile{
 		ProviderUserID: me.ID,
 		Email:          me.Email,
-		// Facebook has no email_verified, so its email is never trusted.
-		EmailVerified: false,
-		Name:          me.Name,
-		AvatarURL:     me.Picture.Data.URL,
+		EmailVerified:  false,
+		Name:           me.Name,
+		AvatarURL:      me.Picture.Data.URL,
 	}, nil
 }
 
 func (f *facebook) exchangeCode(ctx context.Context, code, codeVerifier string) (string, error) {
 	form := url.Values{
 		"client_id":     {f.AppID},
-		"client_secret": {f.AppSecret}, // in the POST body, never in a URL
+		"client_secret": {f.AppSecret},
 		"redirect_uri":  {f.RedirectURI},
 		"code":          {code},
 		"code_verifier": {codeVerifier},

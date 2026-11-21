@@ -29,7 +29,7 @@ Dependencies point one way: `httpapi` uses the services, the services use `store
 - No global state. Constructors take their dependencies.
 - SQL is parameterised. Rules that matter for correctness live in the database (unique indexes, conditional `UPDATE`, `FOR UPDATE`), not in application checks.
 - Secrets are never logged and never put in a URL. Provider response bodies never reach an error message.
-- Comments only for the reason behind something non-obvious. Names and structure carry the rest.
+- No comments in code. Names and structure carry the meaning; the reasons behind decisions live in `docs/`.
 - Tests: table-driven where they share a shape, `-race` always, a real PostgreSQL for anything that depends on a constraint or a lock. A guarantee is only claimed once breaking it makes a test fail.
 
 ## Commands

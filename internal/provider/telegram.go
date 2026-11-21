@@ -25,8 +25,6 @@ type TelegramOptions struct {
 
 type telegram struct{ TelegramOptions }
 
-// NewTelegram returns the Telegram adapter (OpenID Connect with PKCE, HTTP Basic
-// client authentication). Telegram gives no email, so none is ever stored for it.
 func NewTelegram(o TelegramOptions) Provider {
 	if o.TokenURL == "" {
 		o.TokenURL = telegramTokenURL
@@ -51,7 +49,6 @@ func (t *telegram) AuthorizationURL(state, codeChallenge string) string {
 	})
 }
 
-// Authenticate pins RS256, which is the BotFather default.
 func (t *telegram) Authenticate(ctx context.Context, code, codeVerifier string) (Profile, error) {
 	raw, err := requestIDToken(ctx, tokenRequest{
 		client:   t.Client,

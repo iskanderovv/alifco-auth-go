@@ -13,11 +13,8 @@ linters:
   settings:
     gosec:
       excludes:
-        # Token endpoint URLs, not credentials.
         - G101
-        # Cookie attributes come from validated configuration.
         - G124
-        # Redirect targets are built from configuration and provider adapters, never from request input.
         - G710
   exclusions:
     rules:

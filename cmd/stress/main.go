@@ -1,5 +1,3 @@
-// Command stress seeds a test database and load tests a running instance.
-// Start the server first with RATE_LIMIT_OFF=true and the same JWT_SECRET.
 package main
 
 import (
@@ -161,7 +159,6 @@ func do(client *http.Client, method, target string, header http.Header) (int, er
 	return resp.StatusCode, nil
 }
 
-// bench runs fn from conns goroutines. With duration 0 it runs a fixed number of calls, one per index.
 func bench(name string, conns int, duration time.Duration, fn func(int) (int, error)) {
 	var (
 		mu        sync.Mutex

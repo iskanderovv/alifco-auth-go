@@ -16,9 +16,6 @@ import (
 
 const defaultURL = "postgresql://oauth:oauth@localhost:5432/oauth_test"
 
-// NewStore returns a store on a fresh, migrated schema that is dropped when the
-// test ends. Each call gets its own schema, so tests and packages never share rows.
-// The test is skipped when no database is reachable.
 func NewStore(t *testing.T) *store.Store {
 	t.Helper()
 	ctx := context.Background()
@@ -71,7 +68,6 @@ func NewStore(t *testing.T) *store.Store {
 	return store.New(pool)
 }
 
-// NewUser inserts a user and returns its id.
 func NewUser(t *testing.T, s *store.Store, name string) string {
 	t.Helper()
 	var id string

@@ -114,7 +114,6 @@ func (s *Service) Rotate(ctx context.Context, raw string, meta RequestMeta) (str
 	)
 	err := s.store.InTx(ctx, func(tx pgx.Tx) error {
 		var familyID string
-		// One conditional UPDATE: of any number of concurrent callers only one matches.
 		err := tx.QueryRow(ctx, `
 			UPDATE refresh_tokens SET revoked_at = $2
 			WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > $2

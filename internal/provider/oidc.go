@@ -38,8 +38,6 @@ type tokenRequest struct {
 	providerName string
 }
 
-// requestIDToken posts the code exchange. Errors name the failed step only: the
-// provider's body can hold secrets or personal data, so it never reaches an error or a log.
 func requestIDToken(ctx context.Context, r tokenRequest) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, r.endpoint, strings.NewReader(r.form.Encode()))
 	if err != nil {
@@ -153,9 +151,6 @@ func contains(list []string, value string) bool {
 	return false
 }
 
-// JWKS is a cached set of a provider's RSA signing keys, fetched over HTTP.
-// The standard library client decompresses gzip itself, which matters because
-// Telegram answers the key request with gzip even when none is asked for.
 type JWKS struct {
 	url    string
 	client HTTPClient
@@ -182,7 +177,6 @@ func (j *JWKS) Key(ctx context.Context, kid string) (*rsa.PublicKey, error) {
 	if key, ok := j.keys[kid]; ok {
 		return key, nil
 	}
-	// A new key may have been published: look again, but not on every bad token.
 	if j.now().Sub(j.loadedAt) > jwksCooldown {
 		if err := j.load(ctx); err != nil {
 			return nil, err

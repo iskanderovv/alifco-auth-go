@@ -22,8 +22,6 @@ func newCookieJar(secure bool, sameSite string) cookieJar {
 	return cookieJar{secure: secure, sameSite: mode}
 }
 
-// base is shared by set and clear: both must use identical attributes, or the
-// browser keeps the old cookie.
 func (j cookieJar) base(name string) *http.Cookie {
 	return &http.Cookie{Name: name, Path: "/auth", HttpOnly: true, Secure: j.secure, SameSite: j.sameSite}
 }

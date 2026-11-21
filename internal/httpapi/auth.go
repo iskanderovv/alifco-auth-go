@@ -42,8 +42,6 @@ func (s *Server) start(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, p.AuthorizationURL(tx.State, tx.CodeChallenge), http.StatusFound)
 }
 
-// callback finishes a login or a link. It is a browser navigation, not an API call,
-// so every outcome is a redirect to the frontend.
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	p, err := s.providers.Get(chi.URLParam(r, "provider"))
 	if err != nil {
@@ -94,7 +92,6 @@ func (s *Server) finishCallback(w http.ResponseWriter, r *http.Request, p provid
 		return "", err
 	}
 
-	// Linking never touches the session: no refresh cookie is issued.
 	if tx.Mode == store.ModeLink {
 		if tx.UserID == "" {
 			return "", apperr.New(apperr.CodeInvalidState, http.StatusBadRequest)

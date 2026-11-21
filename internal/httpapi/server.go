@@ -55,7 +55,6 @@ func (s *Server) Handler() http.Handler {
 		writeError(w, r, apperr.NotFound(apperr.CodeNotFound))
 	})
 
-	// Liveness stays outside every limiter and never touches the database.
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
@@ -72,7 +71,6 @@ func (s *Server) Handler() http.Handler {
 				r.Use(limit(20, time.Minute))
 			}
 			if s.cfg.DevSPA {
-				// The dev SPA owns these pages; they must not be read as a provider name.
 				r.Get("/callback", s.spa)
 			}
 			r.Get("/{provider}", s.start)

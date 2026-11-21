@@ -168,7 +168,6 @@ func TestLosingTheFirstLoginRaceLogsInTheWinner(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The loser already decided the identity did not exist, and now creates it.
 	loser, isNew, err := svc.create(ctx, store.Google, googleProfile("g-late"))
 	if err != nil || isNew || loser.ID != winner.ID {
 		t.Fatalf("create = id %s new %v err %v, want the winner %s", loser.ID, isNew, err, winner.ID)
